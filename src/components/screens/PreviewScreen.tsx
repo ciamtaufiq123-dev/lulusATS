@@ -861,7 +861,6 @@ export default function PreviewScreen() {
                 <Loader2 className="w-6 h-6 animate-spin" />
                 <span className="text-xs font-bold">
                   Membuka Jendela Midtrans...
-                </span>
                 <button
                   onClick={() => handleSelectPayment('bundle')}
                   type="button"
@@ -888,6 +887,7 @@ export default function PreviewScreen() {
                     </span>
                   </div>
                 </button>
+                </span>
               </div>
             ) : (
               <div className="space-y-2.5">
