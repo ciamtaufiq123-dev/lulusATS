@@ -1,0 +1,31 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+}
+
+model User {
+    id String @id
+    email String @unique
+    name String?
+    avatarUrl String?
+    subscriptionPlan String @default("FREE")
+    remainingQuota Int @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    histories CvHistory[]
+}
+
+model CvHistory {
+    id String @id @default(cuid())
+    userId String
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    jobTitle String?
+    matchScore Int
+    cvData Json
+    createdAt DateTime @default(now())
+}
