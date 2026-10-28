@@ -861,32 +861,6 @@ export default function PreviewScreen() {
                 <Loader2 className="w-6 h-6 animate-spin" />
                 <span className="text-xs font-bold">
                   Membuka Jendela Midtrans...
-                <button
-                  onClick={() => handleSelectPayment('bundle')}
-                  type="button"
-                  className="w-full text-left p-3 rounded-2xl border-2 border-indigo-600 bg-indigo-50/40 hover:bg-indigo-50 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-between relative"
-                >
-                  <div>
-                    <span className="inline-flex items-center gap-1 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-indigo-600 text-white">
-                      <Sparkles className="w-2.5 h-2.5" />
-                      <span>Paling Hemat</span>
-                    </span>
-                    <h4 className="text-xs font-bold text-slate-900 mt-1">
-                      Paket 50 Kuota CV
-                    </h4>
-                    <p className="text-[10px] text-slate-500">
-                      Rp 1.000 / CV • Bebas 50 loker
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0 ml-2">
-                    <span className="text-xs font-black text-indigo-700 block">
-                      Rp 50.000
-                    </span>
-                    <span className="text-[9px] text-emerald-600 font-bold">
-                      50 Token
-                    </span>
-                  </div>
-                </button>
                 </span>
               </div>
             ) : (
@@ -915,6 +889,33 @@ export default function PreviewScreen() {
                       Rp 10.000
                     </span>
                   </span>
+                </button>
+
+                <button
+                  onClick={() => handleSelectPayment('bundle')}
+                  type="button"
+                  className="w-full text-left p-3 rounded-2xl border-2 border-indigo-600 bg-indigo-50/40 hover:bg-indigo-50 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-between relative"
+                >
+                  <div>
+                    <span className="inline-flex items-center gap-1 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-indigo-600 text-white">
+                      <Sparkles className="w-2.5 h-2.5" />
+                      <span>Paling Hemat</span>
+                    </span>
+                    <h4 className="text-xs font-bold text-slate-900 mt-1">
+                      Paket 50 Kuota CV
+                    </h4>
+                    <p className="text-[10px] text-slate-500">
+                      Rp 1.000 / CV • Bebas 50 loker
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0 ml-2">
+                    <span className="text-xs font-black text-indigo-700 block">
+                      Rp 50.000
+                    </span>
+                    <span className="text-[9px] text-emerald-600 font-bold">
+                      50 Token
+                    </span>
+                  </div>
                 </button>
               </div>
             )}
