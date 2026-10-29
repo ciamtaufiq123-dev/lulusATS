@@ -779,7 +779,7 @@ export default function PreviewScreen() {
                   type="button"
                   className="w-full py-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 text-center cursor-pointer"
                 >
-                  + Top Up Paket Kuota via Midtrans (Rp 2.000 / Rp 50.000)
+                  + Top Up Paket Kuota (Rp 2.000 / Rp 50.000)
                 </button>
               </div>
             ) : (
@@ -844,7 +844,7 @@ export default function PreviewScreen() {
                   Pilih Paket Akses CV ATS
                 </h3>
                 <p className="text-[10px] text-slate-500">
-                  Midtrans Sandbox • QRIS / DANA / Virtual Account
+                  QRIS / DANA / Virtual Account
                 </p>
               </div>
               <button

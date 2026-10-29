@@ -28,15 +28,6 @@ export const UNIVERSAL_DICTIONARY: {
         },
     },
     {
-        triggers: ['keuangan', 'kas', 'kasir', 'invoice', 'pembukuan', 'akuntansi', 'pajak'],
-        item: {
-            keyword: 'Pembukuan, Arus Kas & Laporan Keuangan',
-            description: 'Pencatatan transaksi harian, invoice, dan rekapitulas finansial.',
-            category: 'HARD_SKILL',
-            points: 4,
-        },
-    },
-    {
         triggers: ['stock', 'inventaris', 'gudang', 'logistik', 'operasional', 'barang', 'outlet'],
         item: {
             keyword: 'Manajemen Inventaris & Operasional harian',
@@ -55,10 +46,64 @@ export const UNIVERSAL_DICTIONARY: {
         },
     },
     {
-        triggers: ['sales', 'penjualan', 'target', 'marketing', 'pemasaran', 'promosi'],
+        triggers: ['hr', 'hrd', 'human resource', 'rekrutmen', 'recruitment', 'interview', 'wawancara', 'psikotes', 'onboarding', 'karyawan', 'absensi'],
         item: {
-            keyword: 'Strategi Penjualan & Akuisisis Pelanggan',
-            description: 'Pencapaian target penjualan dan perluasan pasar.',
+            keyword: 'Human Resource, Rekrutmen & Adiministrasi Personalia',
+            description: 'Penyaringan kandidan (CV Screening), penjadwalan wawancara, dan pengelolaaan data karyawan',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['keuangan', 'finance', 'akuntansi', 'accounting', 'pembukuan', 'kasir', 'cashier', 'pajak', 'invoice', 'jurnal', 'rekonsiliasi', 'bank', 'rekening'],
+        item: {
+            keyword: 'Administrasi keuangan, Pembukuan & Transaksi Kas',
+            description: 'Pengelolaan laporan keluar-masuk kas, verifikasi transaksi, pembukuan dan penagihan (invoicing).',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['desain', 'design', 'canva', 'photoshop', 'illustrator', 'grafis', 'graphic', 'video', 'capcut', 'premiere', 'visual', 'kreatif'],
+        item: {
+            keyword: 'Desain Grafis, Produksi Konten Visual (Canva / Editing)',
+            description: 'Pembuatan aset visual branding, desain materi promosi, dan penyuntingan video pendek.',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['sosmed', 'social media', 'media sosial', 'instagram', 'tiktok', 'youtube', 'konten', 'content', 'copywriting', 'iklan', 'ads', 'seo', 'engagement'],
+        item: {
+            keyword: 'Social Media Management, Copywriting & Digital Content',
+            description: 'Perencanaan kalender konten, penulisan copywriting, optimasi SEO, dan kampanye media sosial',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['sales', 'penjualan', 'target', 'marketing', 'pemasaran', 'promosi', 'negosiasi', 'prospek', 'b2b', 'b2c', 'closing', 'promoter'],
+        item: {
+            keyword: 'Strategi Penjualan, Negosiasi, dan Akuisisi Pelanggan',
+            description: 'Pencapaian target penjualan, negosiasi komersial, dan perluasan jaringan pelanggan baru.',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['outlet', 'crew', 'kru', 'store', 'toko', 'f&b', 'pos', 'food', 'barista', 'waiter', 'produksi', 'kebersihan', 'hygiene'],
+        item: {
+            keyword: 'Operasional Outlet, Point Of Sales (POS) & Quality Control',
+            description: 'Pelayanan transaksi langsung di outlet, persiapan produk, dan penjagaan standar kebersihan.',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['pelanggan', 'customer', 'service', 'cs', 'melayani', 'komplain', 'complaint', 'hospitality', 'frontliner', 'nasabah', 'teller', 'crm'],
+        item: {
+            keyword: 'Customer Relationship & Service Excellence',
+            description: 'Pelayanan pelanggan prima, penangan keluhan (complaint handling), dan pemeliharaan kepuasan klien.',
             category: 'HARD_SKILL',
             points: 4,
         },
@@ -109,6 +154,15 @@ export const UNIVERSAL_DICTIONARY: {
         },
     },
     {
+        triggers: ['target', 'kpi', 'produktivitas', 'efisiensi', 'kinerja', 'performa', 'pencapaian', 'deadline', 'hasil'],
+        item: {
+            keyword: 'Pencapaian Target Harian (KPI) & Efisisensi Operasional',
+            description: 'Terbukti konsisten menyelesaikan tanggung jawab  kerjatepat waktu sesuai indikator kinerja utama.',
+            category: 'EXPERIENCE',
+            points: 4,
+        },
+    },
+    {
         triggers: ['sop', 'standar', 'kualitas', 'prosedur', 'aturan', 'shift'],
         item: {
             keyword: 'Kepatuhan Prosedur Kerja (SOP) & Kualitas',
@@ -136,7 +190,25 @@ export const UNIVERSAL_DICTIONARY: {
         },
     },
     {
-        triggers: ['tim', 'team', 'komunikasi', 'kolaborasi', 'koordinasi', 'interpersonal', 'public speaking'],
+        triggers: ['komunikasi', 'komunikatif', 'tim', 'team', 'teamwork', 'kerja sama', 'kerjasama', 'interpersonal', 'ramah'],
+        item: {
+            keyword: 'Komunikasi efektif & Kerja Sama Tim (Teamwork) Kuat',
+            description: 'Mampu menyampaikan informasi secara jelas, persuasif, dan bersinergi di dalam tim',
+            category: 'SOFT_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['adaptif', 'cepat belajar', 'fast learner', 'tekanan', 'pressure', 'multitasking', 'waktu', 'time management', 'fleksibet'],
+        item: {
+            keyword: 'Fast Learner, Adaptif & Management Waktu yang Baik',
+            description: 'Cepat menguasai alur kerja baru dan mampu mengatur prioritas tugas di bawah tekanan deadline.',
+            category: 'SOFT_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['tim', 'team', 'kolaborasi', 'koordinasi', 'interpersonal', 'public speaking'],
         item: {
             keyword: 'Komunikasi Efektif & Kolaborasi Tim',
             description: 'Mampu bekerja sama secara solid lintas divisi',
@@ -292,7 +364,7 @@ export default function DashboardScreen() {
                         Input data &amp; Lowongan
                     </h2>
                     <p className='text-xs text-slate-500 mt-1'>
-                        Unggah CV Master Anda dan tempel deskripsi loker target.
+                        Unggah CV profil linkedin pdf Anda dan tempel deskripsi loker target.
                     </p>
                 </div>
 
