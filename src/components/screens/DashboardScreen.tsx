@@ -64,6 +64,42 @@ export const UNIVERSAL_DICTIONARY: {
         },
     },
     {
+        triggers: ['guru', 'pengajar', 'pendidik', 'tentor', 'tutor', 'mengajar', 'kelas', 'siswa', 'murid', 'peserta didik', 'pedagogik', 'sekolah', 'madrasah', 'bimbel'],
+        item: {
+            keyword: 'Manajemen Kelas & Metode Pembelajaran Aktif (Pedagogik)',
+            description: 'Pengelolaan suasana kelas yang kondusif, interaktif, dan berpusat pada pemahaman siswa.',
+            category: 'HARD_SKILL',
+            points: 5,
+        },
+    },
+    {
+        triggers: ['kurikulum', 'kurikulum merdeka', 'rpp', 'modul ajar', 'silabus', 'bahan ajar', 'materi', 'lesson plan', 'prota', 'promes'],
+        item: {
+            keyword: 'Penyususnan RPP, Modul Ajar & Implementasi Kurikulum Merdeka',
+            description: 'Perancangan perangkat pembelajaran, silabus, dan materi ajar, terstruktur sesuaistandar kurikulum.',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['asesmen', 'evaluasi', 'penilaian', 'ujian', 'ulangan', 'rapor', 'nilai', 'remedial', 'pengayaan', 'akademik'],
+        item: {
+            keyword: 'Evaluasi Pembelajaraan, Asesmen Diagnostik & Penilaian Akademik',
+            description: 'Pengukuran pencapaian belajar siswa, analisis hasil ujian, serta penyususnan laporan hasil belajar (rapor)',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['media pembelajaraan', 'alat peraga', 'e-learning', 'interaktif', 'presentasi', 'quizizz', 'google classroom', 'edukasi'],
+        item: {
+            keyword: 'Pengembangan Media Pembelajaran Digital & Interaktif',
+            description: 'Pemanfaatan teknologi pendidikan dan media visual untuk meningkatkan minat belajarpeserta didik.',
+            category: 'HARD_SKILL',
+            points: 4,
+        },
+    },
+    {
         triggers: ['desain', 'design', 'canva', 'photoshop', 'illustrator', 'grafis', 'graphic', 'video', 'capcut', 'premiere', 'visual', 'kreatif'],
         item: {
             keyword: 'Desain Grafis, Produksi Konten Visual (Canva / Editing)',
@@ -154,6 +190,15 @@ export const UNIVERSAL_DICTIONARY: {
         },
     },
     {
+        triggers: ['kbm', 'belajar mengajar', 'wali kelas', 'bimbingan', 'pembinaan', 'ekstrakulikuler', 'karakter', 'wali murid', 'orang tua'],
+        item: {
+            keyword: 'Pelaksanaan Kegiatan Belajar Mengajar (KBM) & Pembinaan Siswa',
+            description: 'Rekam jejak mendampingi perkembangan akademik, karakter siswa, serta komunikasi aktif dengan orang tua/wali',
+            category: 'EXPERIENCE',
+            points: 4,
+        },
+    },
+    {
         triggers: ['target', 'kpi', 'produktivitas', 'efisiensi', 'kinerja', 'performa', 'pencapaian', 'deadline', 'hasil'],
         item: {
             keyword: 'Pencapaian Target Harian (KPI) & Efisisensi Operasional',
@@ -203,6 +248,15 @@ export const UNIVERSAL_DICTIONARY: {
         item: {
             keyword: 'Fast Learner, Adaptif & Management Waktu yang Baik',
             description: 'Cepat menguasai alur kerja baru dan mampu mengatur prioritas tugas di bawah tekanan deadline.',
+            category: 'SOFT_SKILL',
+            points: 4,
+        },
+    },
+    {
+        triggers: ['sabar', 'empati', 'mendidik', 'motivasi', 'komunikatif', 'anak', 'teladan', 'disiplin'],
+        item: {
+            keyword: 'Komunikasi Edukatif, Empati Tinggi & Pembimbing yang Sabar',
+            description: 'Mampu membimbing beragam karakter siswa dengan pendekatan yang sabar, suportif, dan memotivasi.',
             category: 'SOFT_SKILL',
             points: 4,
         },
@@ -364,7 +418,7 @@ export default function DashboardScreen() {
                         Input data &amp; Lowongan
                     </h2>
                     <p className='text-xs text-slate-500 mt-1'>
-                        Unggah CV profil linkedin pdf Anda dan tempel deskripsi loker target.
+                        Unggah Pdf profil linkedin Anda dan tempel deskripsi loker target.
                     </p>
                 </div>
 
