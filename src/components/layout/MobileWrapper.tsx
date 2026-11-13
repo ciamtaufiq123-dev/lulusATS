@@ -40,7 +40,7 @@ export default function MobileWrapper({
     const activeStepNumber = currentStep - 1;
 
     return (
-    <div className="w-full max-w-md bg-white min-h-screen flex flex-col relative border-x border-slate-200/90 shadow-xl overflow-x-hidden">
+    <div className="w-full max-w-7xl bg-white min-h-screen flex flex-col relative border-x border-slate-200/90 shadow-xl overflow-x-hidden mx-auto lg:border-x-0 lg:shadow-none xl:shadow-xl">
         {currentStep >= 2 && (
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 print:hidden">
             <div className="flex items-center justify-between relative">
