@@ -161,9 +161,9 @@ export default function LandingScreen() {
                 </svg>
                 <a
                 className="font-medium text-blue-200 hover:text-white hover:underline transition-all"
-                href="mailto:ciamtaufiq123@gmail.com"
+                href="mailto:atslulus@gmail.com"
                 >
-                ciamtaufiq123@gmail.com
+                atslulus@gmail.com
                 </a>
             </p>
             </div>
