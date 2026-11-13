@@ -61,67 +61,300 @@ async function loadPdfJs(): Promise<PdfJsLib> {
   });
 }
 
-// Fungsi pembaca isi PDF (Mendukung LinkedIn Profile.pdf 2-kolom & CV Reguler)
+interface PositionedPdfTextItem {
+  text: string;
+  x: number;
+  y: number;
+  endX: number;
+  fontSize: number;
+}
+
+interface PdfTextBlock {
+  text: string;
+  x: number;
+  endX: number;
+}
+
+interface PdfVisualLine {
+  y: number;
+  fontSize: number;
+  blocks: PdfTextBlock[];
+}
+
+interface ExtractedPdfLine {
+  text: string;
+  fontSize: number;
+  page: number;
+  y: number;
+}
+
+type ResumeSection = 'summary' | 'experience' | 'education' | 'other';
+
+function getResumeSection(line: string): ResumeSection | null {
+  const heading = line
+    .trim()
+    .replace(/^[•*#\-\s]+/, '')
+    .replace(/^\d+[\s.)-]+/, '')
+    .replace(/[:：\-–—\s]+$/, '')
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+
+  if (
+    /^(summary|professional summary|profile summary|profile|professional profile|about(?: me)?|ringkasan|tentang saya|profil(?: singkat)?|career objective|objective|tujuan karier)$/.test(
+      heading
+    )
+  ) {
+    return 'summary';
+  }
+
+  if (
+    /^(experience|work experience|professional experience|relevant experience|employment(?: history)?|work history|career history|pengalaman(?: kerja| profesional)?|riwayat pekerjaan)$/.test(
+      heading
+    )
+  ) {
+    return 'experience';
+  }
+
+  if (
+    /^(education|educational background|academic background|pendidikan|riwayat pendidikan|edukasi)$/.test(
+      heading
+    )
+  ) {
+    return 'education';
+  }
+
+  if (
+    /^(skills?|technical skills|core skills|keahlian(?: teknis)?|competencies|certifications?|licenses?|sertifikasi|lisensi|languages?|bahasa|awards?|honors?(?: and awards?)?|penghargaan|projects?|proyek|portfolio|volunteer(?: experience)?|sukarelawan|publications?|publikasi|references?|referensi|contact|kontak|personal details|data diri|interests?|minat)$/.test(
+      heading
+    )
+  ) {
+    return 'other';
+  }
+
+  return null;
+}
+
+function createPdfVisualLines(
+  items: PositionedPdfTextItem[]
+): PdfVisualLine[] {
+  const sortedItems = [...items].sort(
+    (a, b) => b.y - a.y || a.x - b.x
+  );
+  const rows: Array<{
+    y: number;
+    fontSize: number;
+    items: PositionedPdfTextItem[];
+  }> = [];
+
+  for (const item of sortedItems) {
+    const row = rows[rows.length - 1];
+    const verticalTolerance = Math.max(
+      2,
+      Math.min(item.fontSize, row?.fontSize ?? item.fontSize) * 0.45
+    );
+
+    if (!row || Math.abs(row.y - item.y) > verticalTolerance) {
+      rows.push({ y: item.y, fontSize: item.fontSize, items: [item] });
+      continue;
+    }
+
+    row.items.push(item);
+    row.y =
+      row.items.reduce((sum, rowItem) => sum + rowItem.y, 0) /
+      row.items.length;
+    row.fontSize = Math.max(row.fontSize, item.fontSize);
+  }
+
+  return rows.map((row) => {
+    const blocks: PdfTextBlock[] = [];
+    let blockItems: PositionedPdfTextItem[] = [];
+
+    const flushBlock = () => {
+      if (blockItems.length === 0) return;
+      blocks.push({
+        text: blockItems.map((item) => item.text).join(' ').trim(),
+        x: blockItems[0].x,
+        endX: blockItems[blockItems.length - 1].endX,
+      });
+      blockItems = [];
+    };
+
+    for (const item of row.items.sort((a, b) => a.x - b.x)) {
+      const previousItem = blockItems[blockItems.length - 1];
+      const columnGap = previousItem ? item.x - previousItem.endX : 0;
+      if (
+        previousItem &&
+        columnGap > Math.max(28, Math.min(item.fontSize, previousItem.fontSize) * 3.5)
+      ) {
+        flushBlock();
+      }
+      blockItems.push(item);
+    }
+    flushBlock();
+
+    return { y: row.y, fontSize: row.fontSize, blocks };
+  });
+}
+
+function detectColumnDivider(
+  lines: PdfVisualLine[],
+  pageLeft: number,
+  pageWidth: number
+): number | null {
+  if (lines.length < 8 || pageWidth <= 0) return null;
+
+  let bestDivider: number | null = null;
+  let bestScore = 0;
+
+  for (let fraction = 0.3; fraction <= 0.7; fraction += 0.02) {
+    const divider = pageLeft + pageWidth * fraction;
+    let leftLineCount = 0;
+    let rightLineCount = 0;
+    let crossingLineCount = 0;
+
+    for (const line of lines) {
+      const hasLeft = line.blocks.some((block) => block.endX <= divider);
+      const hasRight = line.blocks.some((block) => block.x >= divider);
+      const crossesDivider = line.blocks.some(
+        (block) => block.x < divider && block.endX > divider
+      );
+      if (hasLeft) leftLineCount += 1;
+      if (hasRight) rightLineCount += 1;
+      if (crossesDivider) crossingLineCount += 1;
+    }
+
+    const balancedLines = Math.min(leftLineCount, rightLineCount);
+    const crossingRatio = crossingLineCount / lines.length;
+    if (
+      balancedLines < Math.max(3, Math.floor(lines.length * 0.12)) ||
+      crossingRatio > 0.2
+    ) {
+      continue;
+    }
+
+    const score =
+      balancedLines -
+      crossingLineCount * 2 -
+      Math.abs(leftLineCount - rightLineCount) * 0.1;
+    if (score > bestScore) {
+      bestScore = score;
+      bestDivider = divider;
+    }
+  }
+
+  return bestDivider;
+}
+
+function orderPageLines(
+  lines: PdfVisualLine[],
+  pageNumber: number,
+  divider: number | null
+): ExtractedPdfLine[] {
+  const makeLine = (
+    line: PdfVisualLine,
+    blocks: PdfTextBlock[]
+  ): ExtractedPdfLine | null => {
+    const text = blocks.map((block) => block.text).join(' ').trim();
+    return text
+      ? { text, fontSize: line.fontSize, page: pageNumber, y: line.y }
+      : null;
+  };
+
+  if (divider === null) {
+    return lines
+      .map((line) => makeLine(line, line.blocks))
+      .filter((line): line is ExtractedPdfLine => line !== null);
+  }
+
+  const spanningLines = lines
+    .filter((line) =>
+      line.blocks.some(
+        (block) => block.x < divider && block.endX > divider
+      )
+    )
+    .sort((a, b) => b.y - a.y);
+  const ordered: ExtractedPdfLine[] = [];
+  let regionTop = Number.POSITIVE_INFINITY;
+
+  const appendColumns = (regionBottom: number) => {
+    for (const isLeftColumn of [true, false]) {
+      for (const line of lines) {
+        if (
+          line.y >= regionTop ||
+          line.y <= regionBottom ||
+          spanningLines.includes(line)
+        ) {
+          continue;
+        }
+
+        const blocks = line.blocks.filter((block) =>
+          isLeftColumn
+            ? (block.x + block.endX) / 2 < divider
+            : (block.x + block.endX) / 2 >= divider
+        );
+        const extractedLine = makeLine(line, blocks);
+        if (extractedLine) ordered.push(extractedLine);
+      }
+    }
+  };
+
+  for (const line of spanningLines) {
+    appendColumns(line.y);
+    const extractedLine = makeLine(line, line.blocks);
+    if (extractedLine) ordered.push(extractedLine);
+    regionTop = line.y;
+  }
+  appendColumns(Number.NEGATIVE_INFINITY);
+
+  return ordered;
+}
+
+// Reads text from common single- and multi-column resume layouts.
 async function extractDataFromPdfFile(file: File): Promise<ExtractedPDFData> {
   const pdfjsLib = await loadPdfJs();
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-  const allLines: { text: string; fontSize: number; page: number }[] = [];
+  const allLines: ExtractedPdfLine[] = [];
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
     const page = await pdf.getPage(pageNum);
     const content = await page.getTextContent();
+    const positionedItems = content.items.flatMap((item) => {
+      const text = item.str?.replace(/\s+/g, ' ').trim();
+      if (!text) return [];
 
-    let currentY: number | null = null;
-    let lastX: number | null = null;
-    let currentText = '';
-    let maxFontInLine = 0;
+      const transform = item.transform ?? [10, 0, 0, 10, 0, 0];
+      const fontSize =
+        Math.hypot(transform[0] ?? 0, transform[1] ?? 0) ||
+        Math.abs(transform[3] ?? 0) ||
+        item.height ||
+        10;
+      const x = transform[4] ?? 0;
+      const y = transform[5] ?? 0;
+      const width =
+        item.width && item.width > 0
+          ? item.width
+          : Math.max(fontSize * 0.25, text.length * fontSize * 0.5);
 
-    for (const item of content.items) {
-      const str = (item.str || '').trim();
-      if (!str) continue;
+      return [{ text, x, y, endX: x + width, fontSize }];
+    });
 
-      const transform = item.transform || [10, 0, 0, 10, 0, 0];
-      const x = Math.round(transform[4]);
-      const y = Math.round(transform[5]);
-      const fontSize = Math.round(
-        Math.abs(transform[0]) || Math.abs(transform[3]) || 10
-      );
+    if (positionedItems.length === 0) continue;
 
-      // Pisahkan baris jika pindah kolom jauh (seperti sidebar kiri vs kolom kanan LinkedIn PDF)
-      const isSameLine =
-        currentY !== null &&
-        Math.abs(y - currentY) <= 3 &&
-        (lastX === null || Math.abs(x - lastX) < 140);
+    const visualLines = createPdfVisualLines(positionedItems);
+    const pageLeft = page.view?.[0] ?? 0;
+    const pageRight = page.view?.[2] ?? 595;
+    const divider = detectColumnDivider(
+      visualLines,
+      pageLeft,
+      pageRight - pageLeft
+    );
+    allLines.push(...orderPageLines(visualLines, pageNum, divider));
+  }
 
-      if (isSameLine) {
-        currentText = currentText ? `${currentText} ${str}` : str;
-        if (fontSize > maxFontInLine) maxFontInLine = fontSize;
-        currentY = y;
-        lastX = x;
-      } else {
-        if (currentText.trim()) {
-          allLines.push({
-            text: currentText.trim(),
-            fontSize: maxFontInLine,
-            page: pageNum,
-          });
-        }
-        currentText = str;
-        maxFontInLine = fontSize;
-        currentY = y;
-        lastX = x;
-      }
-    }
-
-    if (currentText.trim()) {
-      allLines.push({
-        text: currentText.trim(),
-        fontSize: maxFontInLine,
-        page: pageNum,
-      });
-    }
+  if (allLines.length === 0) {
+    throw new Error('PDF_NO_EXTRACTABLE_TEXT');
   }
 
   const fullText = allLines.map((l) => l.text).join('\n');
@@ -143,8 +376,9 @@ async function extractDataFromPdfFile(file: File): Promise<ExtractedPDFData> {
     (l) =>
       l.page === 1 &&
       l.text.length >= 3 &&
-      l.text.length <= 45 &&
+      l.text.length <= 60 &&
       !ignoredHeaders.test(l.text.trim()) &&
+      !getResumeSection(l.text) &&
       !l.text.includes('@') &&
       !l.text.toLowerCase().includes('linkedin.com') &&
       !l.text.toLowerCase().includes('http') &&
@@ -152,7 +386,7 @@ async function extractDataFromPdfFile(file: File): Promise<ExtractedPDFData> {
   );
 
   const sortedByFont = [...page1Candidates].sort(
-    (a, b) => b.fontSize - a.fontSize
+    (a, b) => b.fontSize - a.fontSize || b.y - a.y
   );
   let detectedName = sortedByFont[0]?.text || '';
 
@@ -175,56 +409,61 @@ async function extractDataFromPdfFile(file: File): Promise<ExtractedPDFData> {
   );
 
   // 4. Deteksi Ringkasan, Pengalaman Kerja, & Riwayat Pendidikan
-  const sumIndex = allLines.findIndex((l) =>
-    /^(summary|ringkasan|tentang saya|profil|about|about me)$/i.test(
-      l.text.trim()
-    )
-  );
-  const expIndex = allLines.findIndex((l) =>
-    /^(experience|pengalaman|pengalaman kerja|work experience|riwayat pekerjaan)$/i.test(
-      l.text.trim()
-    )
-  );
-  const eduIndex = allLines.findIndex((l) =>
-    /^(education|pendidikan|riwayat pendidikan|edukasi|latar belakang pendidikan)$/i.test(
-      l.text.trim()
-    )
-  );
-
   const cleanLines = (lines: string[]) =>
-    lines.filter(
-      (t) =>
-        !/^page \d+ of \d+$/i.test(t.trim()) &&
-        !/^(contact|top skills|languages|certifications)$/i.test(t.trim())
+    lines
+      .map((line) => line.replace(/^[•●▪◦\-–]\s*/, '').trim())
+      .filter(
+        (line) =>
+          line.length > 0 &&
+          !/^page \d+(?: of \d+)?$/i.test(line) &&
+          !/^(contact|kontak|top skills|languages|bahasa|certifications?)$/i.test(
+            line
+          )
+      );
+
+  const extractSection = (
+    section: 'summary' | 'experience' | 'education',
+    maxLines: number
+  ) => {
+    const startIndex = allLines.findIndex(
+      (line) => getResumeSection(line.text) === section
     );
+    if (startIndex === -1) return [];
 
-  // Ambil Ringkasan
-  let summaryText = '';
-  if (sumIndex !== -1) {
-    const endSum = expIndex > sumIndex ? expIndex : sumIndex + 5;
-    summaryText = cleanLines(
-      allLines.slice(sumIndex + 1, endSum).map((l) => l.text)
-    )
-      .join(' ')
-      .trim();
+    const sectionLines: string[] = [];
+    for (let index = startIndex + 1; index < allLines.length; index += 1) {
+      if (getResumeSection(allLines[index].text)) break;
+      sectionLines.push(allLines[index].text);
+      if (sectionLines.length >= maxLines) break;
+    }
+    return cleanLines(sectionLines);
+  };
+
+  let summaryText = extractSection('summary', 7).join(' ').trim();
+  if (!summaryText) {
+    const firstSectionIndex = allLines.findIndex((line) =>
+      getResumeSection(line.text)
+    );
+    if (firstSectionIndex > 0) {
+      summaryText = cleanLines(
+        allLines
+          .slice(1, firstSectionIndex)
+          .map((line) => line.text)
+          .filter(
+            (line) =>
+              !line.includes('@') &&
+              !/linkedin\.com|https?:\/\//i.test(line) &&
+              !/(?:\+62|62|08)[0-9\s\-]{8,16}/.test(line)
+          )
+      )
+        .slice(0, 5)
+        .join(' ');
+    }
   }
 
-  // Ambil Pengalaman Kerja
-  let experienceLines: string[] = [];
-  if (expIndex !== -1) {
-    const endExp = eduIndex > expIndex ? eduIndex : expIndex + 10;
-    experienceLines = cleanLines(
-      allLines.slice(expIndex + 1, endExp).map((l) => l.text)
-    ).slice(0, 7);
-  }
-
-  // Ambil Riwayat Pendidikan
-  let educationLines: string[] = [];
-  if (eduIndex !== -1) {
-    educationLines = cleanLines(
-      allLines.slice(eduIndex + 1, eduIndex + 8).map((l) => l.text)
-    ).slice(0, 5);
-  } else {
+  const experienceLines = extractSection('experience', 10).slice(0, 7);
+  let educationLines = extractSection('education', 8).slice(0, 5);
+  if (educationLines.length === 0) {
     const schoolIdx = allLines.findIndex((l) =>
       /(universitas|institut|politeknik|sekolah tinggi|sma |smk |man |ma |sarjana|bachelor|d3|d4|smp|sd)/i.test(
         l.text
@@ -232,8 +471,8 @@ async function extractDataFromPdfFile(file: File): Promise<ExtractedPDFData> {
     );
     if (schoolIdx !== -1) {
       educationLines = cleanLines(
-        allLines.slice(schoolIdx, schoolIdx + 4).map((l) => l.text)
-      );
+        allLines.slice(schoolIdx, schoolIdx + 5).map((l) => l.text)
+      ).slice(0, 5);
     }
   }
 
@@ -272,6 +511,7 @@ export default function PreviewScreen() {
 
   const [pdfData, setPdfData] = useState<ExtractedPDFData | null>(null);
   const [isReadingPdf, setIsReadingPdf] = useState(false);
+  const [pdfReadError, setPdfReadError] = useState<string | null>(null);
   const [isUsingQuota, setIsUsingQuota] = useState(false);
   const [isLoadingSnap, setIsLoadingSnap] = useState(false);
   const downloadLockRef = useRef(false);
@@ -296,11 +536,15 @@ export default function PreviewScreen() {
     if (cvFile) {
       Promise.resolve()
         .then(() => {
-          if (isMounted) setIsReadingPdf(true);
+          if (!isMounted) return null;
+          setPdfData(null);
+          setPdfReadError(null);
+          setIsReadingPdf(true);
+          sessionStorage.removeItem('lulusats_extracted_pdf');
           return extractDataFromPdfFile(cvFile);
         })
         .then((data) => {
-          if (isMounted) {
+          if (isMounted && data) {
             setPdfData(data);
             sessionStorage.setItem(
               'lulusats_extracted_pdf',
@@ -310,22 +554,42 @@ export default function PreviewScreen() {
         })
         .catch((err) => {
           console.error('Gagal mengekstrak PDF di Preview:', err);
+          if (isMounted) {
+            setPdfData(null);
+            setPdfReadError(
+              err instanceof Error &&
+                err.message === 'PDF_NO_EXTRACTABLE_TEXT'
+                ? 'Teks tidak ditemukan di PDF ini. Pastikan PDF memiliki teks yang bisa dipilih; PDF hasil scan belum didukung.'
+                : 'PDF belum bisa dibaca. Coba ekspor ulang sebagai PDF berbasis teks, lalu unggah kembali.'
+            );
+          }
         })
         .finally(() => {
           if (isMounted) setIsReadingPdf(false);
         });
     } else {
       const cachedPdf = sessionStorage.getItem('lulusats_extracted_pdf');
-      if (cachedPdf) {
-        queueMicrotask(() => {
-          if (!isMounted) return;
+      queueMicrotask(() => {
+        if (!isMounted) return;
+        if (cachedPdf) {
           try {
             setPdfData(JSON.parse(cachedPdf) as ExtractedPDFData);
+            setPdfReadError(null);
           } catch (err) {
             console.error('Gagal membaca cache PDF:', err);
+            setPdfData(null);
+            setPdfReadError(
+              'Data hasil pembacaan CV tidak ditemukan. Silakan unggah ulang file PDF Anda.'
+            );
           }
-        });
-      }
+          return;
+        }
+
+        setPdfData(null);
+        setPdfReadError(
+          'Data hasil pembacaan CV tidak ditemukan. Silakan unggah ulang file PDF Anda.'
+        );
+      });
     }
     return () => {
       isMounted = false;
@@ -478,6 +742,14 @@ export default function PreviewScreen() {
   };
 
   const handleDownloadPDF = async () => {
+    if (isReadingPdf || !pdfData || pdfReadError) {
+      alert(
+        pdfReadError ||
+          'Tunggu sampai file CV selesai dibaca sebelum mengunduh PDF.'
+      );
+      return;
+    }
+
     if (
       typeof window === 'undefined' ||
       !user ||
@@ -529,6 +801,15 @@ export default function PreviewScreen() {
   return (
     <section className="w-full flex flex-col pb-36 transition-all duration-300 bg-slate-50 flex-1">
       <div className="p-4 space-y-4">
+        {pdfReadError && (
+          <div
+            role="alert"
+            className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-medium text-rose-700 print:hidden"
+          >
+            {pdfReadError}
+          </div>
+        )}
+
         {/* Card Status Atas */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex items-center justify-between print:hidden">
           <div className="flex items-center gap-3">
@@ -537,7 +818,11 @@ export default function PreviewScreen() {
             </div>
             <div>
               <h2 className="text-xs font-extrabold text-slate-900">
-                CV ATS Siap Diterbitkan
+                {pdfReadError
+                  ? 'CV Belum Bisa Diproses'
+                  : isReadingPdf
+                    ? 'Membaca CV...'
+                    : 'CV ATS Siap Diterbitkan'}
               </h2>
               <p className="text-[11px] text-slate-500">
                 Standar 1-Kolom ATS • A4 Vector
@@ -766,8 +1051,9 @@ export default function PreviewScreen() {
               <div className="space-y-2">
                 <button
                   onClick={handleUseQuota}
+                  disabled={isReadingPdf || !pdfData || Boolean(pdfReadError)}
                   type="button"
-                  className="w-full min-h-13 inline-flex items-center justify-center gap-2 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 active:scale-[0.98] text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-indigo-500/25 transition-all text-sm cursor-pointer"
+                  className="w-full min-h-13 inline-flex items-center justify-center gap-2 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-indigo-500/25 transition-all text-sm cursor-pointer"
                 >
                   <Ticket className="w-4 h-4" />
                   <span>
@@ -776,8 +1062,9 @@ export default function PreviewScreen() {
                 </button>
                 <button
                   onClick={openPaymentModal}
+                  disabled={isReadingPdf || !pdfData || Boolean(pdfReadError)}
                   type="button"
-                  className="w-full py-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 text-center cursor-pointer"
+                  className="w-full py-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 text-center disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   + Top Up Paket Kuota (Rp 2.000 / Rp 50.000)
                 </button>
@@ -785,7 +1072,13 @@ export default function PreviewScreen() {
             ) : (
               <button
                 onClick={openPaymentModal}
-                disabled={isProcessingPayment || isLoadingSnap}
+                disabled={
+                  isProcessingPayment ||
+                  isLoadingSnap ||
+                  isReadingPdf ||
+                  !pdfData ||
+                  Boolean(pdfReadError)
+                }
                 type="button"
                 className="w-full min-h-13 inline-flex items-center justify-center gap-2.5 bg-linear-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:scale-[0.98] disabled:opacity-60 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-lg shadow-teal-600/30 transition-all text-sm cursor-pointer group"
               >
@@ -810,7 +1103,7 @@ export default function PreviewScreen() {
           <div className="space-y-2">
             <button
               onClick={handleDownloadPDF}
-              disabled={isUsingQuota}
+              disabled={isUsingQuota || isReadingPdf || !pdfData || Boolean(pdfReadError)}
               type="button"
               className="w-full min-h-13 inline-flex items-center justify-center gap-2 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] disabled:opacity-60 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-emerald-600/25 transition-all text-sm cursor-pointer"
             >

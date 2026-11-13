@@ -79,9 +79,13 @@ export interface ExtractedPDFData {
 export interface PdfTextItem {
   str?: string;
   transform?: number[];
+  width?: number;
+  height?: number;
+  hasEOL?: boolean;
 }
 
 export interface PdfPage {
+  view?: readonly number[];
   getTextContent: () => Promise<{ items: PdfTextItem[] }>;
 }
 
