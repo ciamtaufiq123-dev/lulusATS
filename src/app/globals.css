@@ -34,10 +34,16 @@ body {
     margin: 0;
   }
 
+  html,
   body {
+    width: 100% !important;
+    max-width: none !important;
+    overflow: visible !important;
     background: #ffffff !important;
     margin: 0 !important;
     padding: 0 !important;
+    display: block !important;
+    justify-content: flex-start !important;
   }
 
   body * {
@@ -46,18 +52,20 @@ body {
 
   .preview-cv-a4,
   .preview-cv-a4 * {
-    visibility: visible;
+    visibility: visible !important;
   }
 
   .preview-cv-a4 {
-    position: fixed;
-    left: 0;
-    top: 0;
+    position: static !important;
+    display: block !important;
     width: 100% !important;
-    margin: 0 !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
     padding: 18mm 20mm !important;
     border: none !important;
     box-shadow: none !important;
     background: #ffffff !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
