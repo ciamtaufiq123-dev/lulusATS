@@ -36,7 +36,7 @@ body {
 
   html,
   body {
-    width: 100% !important;
+    width: 210mm !important;
     max-width: none !important;
     overflow: visible !important;
     background: #ffffff !important;
@@ -56,15 +56,23 @@ body {
   }
 
   .preview-cv-a4 {
-    position: static !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
     display: block !important;
-    width: 100% !important;
-    max-width: 210mm !important;
-    margin: 0 auto !important;
-    padding: 18mm 20mm !important;
+    box-sizing: border-box !important;
+    width: 210mm !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 12mm 16mm !important;
     border: none !important;
     box-shadow: none !important;
     background: #ffffff !important;
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .preview-cv-a4 > * {
     break-inside: avoid;
     page-break-inside: avoid;
   }
