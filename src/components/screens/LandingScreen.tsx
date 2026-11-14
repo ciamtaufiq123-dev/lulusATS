@@ -46,8 +46,8 @@ export default function LandingScreen() {
                     </div>
 
                     <div className='text-center space-y-3 lg:justify-self-end lg:w-full lg:max-w-md'>
-                        <div className='relative rounded-3xl overflow-hidden mx-auto p-1.5 bg-white shadow-lg ring-1 ring-slate-200/80'>
-                            <Image src='/cv-sample.jpeg' alt='sample cv ats' width={800} height={1000} className='w-full h-auto object-cover rounded-2xl block' />
+                        <div className='mx-auto w-full'>
+                            <Image src='/cv-sample.jpeg' alt='sample cv ats' width={800} height={1000} className='w-full h-auto object-cover rounded-2xl block shadow-none' />
                         </div>
                         <div className='text-sm font-medium text-slate-500'>
                             Preview hasil CV Standar ATS
