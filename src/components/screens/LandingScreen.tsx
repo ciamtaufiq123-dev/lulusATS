@@ -55,13 +55,13 @@ export default function LandingScreen() {
                     </div>
                 </div>
 
-                <div className='grid gap-4 lg:grid-cols-[1.2fr_0.8fr] items-start'>
-                    <div className='bg-white rounded-3xl p-4 sm:p-5 lg:p-6 space-y-4 shadow-sm ring-1 ring-slate-200'>
+                <div className='grid gap-5 lg:grid-cols-[1.2fr_0.8fr] items-start'>
+                    <div className='space-y-4'>
                         <h2 className='text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-wider'>
                             3 Langkah Mudah
                         </h2>
                         <div className='grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3'>
-                            <div className='flex items-start gap-3'>
+                            <div className='flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-3 shadow-xs'>
                                 <div className='w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 font-extrabold text-sm flex items-center justify-center shrink-0 border border-indigo-200'>
                                     1
                                 </div>
@@ -73,7 +73,7 @@ export default function LandingScreen() {
                                 </div>
                             </div>
 
-                            <div className='flex items-start gap-3'>
+                            <div className='flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-3 shadow-xs'>
                                 <div className='w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 font-extrabold text-sm flex items-center justify-center shrink-0 border border-indigo-200'>
                                     2
                                 </div>
@@ -85,7 +85,7 @@ export default function LandingScreen() {
                                 </div>
                             </div>
 
-                            <div className='flex items-start gap-3'>
+                            <div className='flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-3 shadow-xs'>
                                 <div className='w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 font-extrabold text-sm flex items-center justify-center shrink-0 border border-indigo-200'>
                                     3
                                 </div>
